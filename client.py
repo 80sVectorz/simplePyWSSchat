@@ -1,3 +1,4 @@
+import threading
 import asyncio
 import websockets
 import os, time, pickle
@@ -20,24 +21,37 @@ def display():
     for m in log:
         print(f"{m}")
 
-async def chat():
+async def recieveLog():
     global log
-    cls()
-    display()
     uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
         request = "{g}"
         await websocket.send(request)
         recv = await websocket.recv()
         if recv != "{NONE}":
-            log = pickle.loads(recv)
+            if log != pickle.loads(recv):
+                cls()
+                display()
+                log = pickle.loads(recv)
+
+async def sendMessage():
+    uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
         msg = "["+name+"] "+input("Message: ")
         await websocket.send(msg)
 
 async def main():
     while True:
-        await chat()
+        await recieveLog()
+
+async def mainInput():
+    while True:
+        await sendMessage()
+
+
+threadDisplayLoop = threading.Thread(target=mainInput, args=(),daemon=True)
+threadDisplayLoop.start()
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

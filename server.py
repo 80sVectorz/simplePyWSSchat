@@ -10,7 +10,6 @@ log = ["[john] hello"]
 async def chat(websocket, path):
     msg = await websocket.recv()
     if msg == "{g}":
-        print("fetching and sending...")
         if len(log) == 0:
             print("log empty...")
             await websocket.send("{NONE}")
